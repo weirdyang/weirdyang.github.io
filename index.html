@@ -9,12 +9,19 @@
             font-family: "Courier New", Courier, monospace;
             margin: 0;
             padding: 20px;
-            background-color: iheri;
+            background-color: inherit;
             color: #000;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            overflow-y: scroll;
+            scrollbar-width: none
+            -ms-overflow-style: none;
+        }
+        body::-webkit-scrollbar { /* WebKit */
+            width: 0;
+            height: 0;
         }
         .container {
             width: 80%;

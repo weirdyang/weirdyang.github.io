@@ -15,66 +15,200 @@
             flex-direction: column;
             font-family: Arial, sans-serif;
             position: relative;
+            margin: 0;
+            overflow: hidden;
         }
+        
         .grid {
             display: grid;
             grid-template-columns: repeat(20, 15px);
             gap: 5px;
+            position: relative;
         }
+        
         .dot {
             width: 10px;
             height: 10px;
             border-radius: 50%;
             background-color: green;
+            transition: background-color 0.5s ease, transform 0.3s ease;
         }
+        
+        .dot:hover {
+            transform: scale(1.5);
+        }
+        
         .fade-red {
             background-color: rgb(255, 0, 0);
+            animation: pulse 2s infinite alternate;
         }
+        
         .fade-red-1 {
             background-color: rgb(200, 50, 50);
+            animation: pulse 2.2s infinite alternate-reverse;
         }
+        
         .fade-red-2 {
             background-color: rgb(150, 100, 100);
+            animation: pulse 2.4s infinite alternate;
         }
+        
         .fade-red-3 {
             background-color: rgb(100, 150, 100);
+            animation: pulse 2.6s infinite alternate-reverse;
         }
+        
         .fade-red-4 {
             background-color: rgb(50, 200, 50);
+            animation: pulse 2.8s infinite alternate;
         }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+            100% {
+                transform: scale(1.3);
+                opacity: 1;
+            }
+        }
+        
         .text {
             position: absolute;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+            opacity: 0;
+            animation: fadeIn 2s forwards 1s;
         }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
         .bad-day-text {
             left: -150px;
-            top: -10px;
+            top: -40px;
+            font-size: 18px;
+            color: rgba(255, 50, 50, 0.9);
         }
+        
         .not-bad-life-text {
-            bottom: -20px;
-            right: -30px;
+            bottom: -40px;
+            right: -120px;
+            font-size: 18px;
+            color: rgba(50, 255, 50, 0.9);
+        }
+        
+        .shooting-star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background-color: white;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
-    <div class="grid">
-        <script>
-            const grid = document.querySelector('.grid');
-            for (let i = 0; i < 30; i++) {
-                let start = Math.floor(Math.random() * 15);
-                let length = Math.floor(Math.random() * 30) + 1;
-                for (let j = 0; j < 20; j++) {
-                    const dot = document.createElement('div');
-                    dot.classList.add('dot');
-                    if (j >= start && j < start + length) {
-                        let fadeIndex = j - start;
-                        dot.classList.add(`fade-red-${fadeIndex}`);
-                    }
-                    grid.appendChild(dot);
-                }
-            }
-        </script>
-    </div>
+    <div class="grid" id="grid"></div>
     <div class="text bad-day-text">A bad day, that's it</div>
     <div class="text not-bad-life-text">Not a bad life</div>
+
+    <script>
+        const grid = document.getElementById('grid');
+        
+        // Create the grid
+        for (let i = 0; i < 30; i++) {
+            let start = Math.floor(Math.random() * 15);
+            let length = Math.floor(Math.random() * 5) + 1;
+            
+            for (let j = 0; j < 20; j++) {
+                const dot = document.createElement('div');
+                dot.classList.add('dot');
+                
+                // Add random delay to each dot's animation
+                dot.style.animationDelay = (Math.random() * 2) + 's';
+                
+                if (j >= start && j < start + length) {
+                    // Determine which fade class to add
+                    let fadeIndex = Math.min(4, j - start);
+                    dot.classList.add(`fade-red-${fadeIndex}`);
+                } else {
+                    // Add interaction to regular dots
+                    dot.addEventListener('mouseover', () => {
+                        dot.style.backgroundColor = `rgb(${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)})`;
+                        setTimeout(() => {
+                            dot.style.backgroundColor = '';
+                        }, 1000);
+                    });
+                }
+                
+                grid.appendChild(dot);
+            }
+        }
+        
+        // Add shooting stars effect
+        function createShootingStar() {
+            const star = document.createElement('div');
+            star.classList.add('shooting-star');
+            
+            // Random position and trajectory
+            const startX = Math.random() * window.innerWidth;
+            const startY = Math.random() * window.innerHeight / 3;
+            const angle = Math.PI / 4 + (Math.random() * Math.PI / 4);
+            
+            star.style.left = startX + 'px';
+            star.style.top = startY + 'px';
+            
+            document.body.appendChild(star);
+            
+            // Animate the shooting star
+            const animation = star.animate([
+                { 
+                    left: startX + 'px', 
+                    top: startY + 'px',
+                    opacity: 1,
+                    width: '2px',
+                    height: '2px',
+                    backgroundColor: 'white'
+                },
+                { 
+                    left: (startX + Math.cos(angle) * 300) + 'px', 
+                    top: (startY + Math.sin(angle) * 300) + 'px',
+                    opacity: 0,
+                    width: '4px',
+                    height: '4px',
+                    backgroundColor: 'rgba(200, 200, 255, 0.8)'
+                }
+            ], {
+                duration: 1000 + Math.random() * 2000,
+                easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)'
+            });
+            
+            animation.onfinish = () => {
+                star.remove();
+            };
+        }
+        
+        // Create shooting stars periodically
+        //setInterval(createShootingStar, 3000);
+        
+        // Animate the dots periodically
+        setInterval(() => {
+            const dots = document.querySelectorAll('.dot:not(.fade-red):not(.fade-red-1):not(.fade-red-2):not(.fade-red-3):not(.fade-red-4)');
+            const randomDot = dots[Math.floor(Math.random() * dots.length)];
+            
+            if (randomDot) {
+                randomDot.style.transform = 'scale(1.25)';
+                randomDot.style.backgroundColor = 'rgba(0, 255, 0, 0.8)';
+                
+                setTimeout(() => {
+                    randomDot.style.transform = '';
+                    randomDot.style.backgroundColor = '';
+                }, 1000);
+            }
+        }, 800);
+    </script>
 </body>
 </html>

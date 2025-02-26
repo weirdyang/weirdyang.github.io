@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
     <title>Bad Day vs Bad Life</title>
     <style>
         body {
@@ -18,89 +22,90 @@
             margin: 0;
             overflow: hidden;
         }
-        
+
         .grid {
             display: grid;
             grid-template-columns: repeat(20, 15px);
             gap: 5px;
             position: relative;
         }
-        
+
         .dot {
             width: 10px;
             height: 10px;
             border-radius: 50%;
             background-color: green;
-            transition: background-color 0.5s ease, transform 0.3s ease;
+            transition: transform 0.3s ease;
         }
-        
+
         .dot:hover {
             transform: scale(1.5);
         }
-        
+
         .fade-red {
-            background-color: rgb(255, 0, 0);
             animation: pulse 2s infinite alternate;
         }
-        
+
         .fade-red-1 {
-            background-color: rgb(200, 50, 50);
             animation: pulse 2.2s infinite alternate-reverse;
         }
-        
+
         .fade-red-2 {
-            background-color: rgb(150, 100, 100);
             animation: pulse 2.4s infinite alternate;
         }
-        
+
         .fade-red-3 {
-            background-color: rgb(100, 150, 100);
             animation: pulse 2.6s infinite alternate-reverse;
         }
-        
+
         .fade-red-4 {
-            background-color: rgb(50, 200, 50);
             animation: pulse 2.8s infinite alternate;
         }
-        
+
         @keyframes pulse {
             0% {
                 transform: scale(1);
                 opacity: 0.7;
             }
+
             100% {
                 transform: scale(1.3);
                 opacity: 1;
             }
         }
-        
+
         .text {
             position: absolute;
             font-weight: bold;
-            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
             opacity: 0;
             animation: fadeIn 2s forwards 1s;
         }
-        
+
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
-        
+
         .bad-day-text {
             left: -150px;
             top: -40px;
             font-size: 18px;
             color: rgba(255, 50, 50, 0.9);
         }
-        
+
         .not-bad-life-text {
             bottom: -40px;
             right: -120px;
             font-size: 18px;
             color: rgba(50, 255, 50, 0.9);
         }
-        
+
         .shooting-star {
             position: absolute;
             width: 2px;
@@ -110,71 +115,171 @@
         }
     </style>
 </head>
+
 <body>
-    <div class="grid" id="grid"></div>
+    <div
+        class="grid"
+        id="grid"
+    ></div>
     <div class="text bad-day-text">A bad day, that's it</div>
     <div class="text not-bad-life-text">Not a bad life</div>
 
     <script>
         const grid = document.getElementById('grid');
-        
+        const dots = [];
+
         // Create the grid
         for (let i = 0; i < 30; i++) {
             let start = Math.floor(Math.random() * 15);
             let length = Math.floor(Math.random() * 5) + 1;
-            
+
             for (let j = 0; j < 20; j++) {
                 const dot = document.createElement('div');
                 dot.classList.add('dot');
-                
+
                 // Add random delay to each dot's animation
                 dot.style.animationDelay = (Math.random() * 2) + 's';
-                
+
+                // Store initial color data
+                let dotData = {
+                    element: dot,
+                    r: 0,
+                    g: 0,
+                    b: 0,
+                    targetR: 0,
+                    targetG: 0,
+                    targetB: 0,
+                    transitionSpeed: 0.01 + Math.random() * 0.03 // Random transition speed
+                };
+
                 if (j >= start && j < start + length) {
                     // Determine which fade class to add
                     let fadeIndex = Math.min(4, j - start);
                     dot.classList.add(`fade-red-${fadeIndex}`);
+
+                    // Set initial colors based on fade class
+                    switch (fadeIndex) {
+                        case 0:
+                            dotData.r = 255; dotData.g = 0; dotData.b = 0;
+                            break;
+                        case 1:
+                            dotData.r = 200; dotData.g = 50; dotData.b = 50;
+                            break;
+                        case 2:
+                            dotData.r = 150; dotData.g = 100; dotData.b = 100;
+                            break;
+                        case 3:
+                            dotData.r = 100; dotData.g = 150; dotData.b = 100;
+                            break;
+                        case 4:
+                            dotData.r = 50; dotData.g = 200; dotData.b = 50;
+                            break;
+                    }
                 } else {
+                    // Default green for regular dots
+                    dotData.r = 0; dotData.g = 128; dotData.b = 0;
+
                     // Add interaction to regular dots
                     dot.addEventListener('mouseover', () => {
-                        dot.style.backgroundColor = `rgb(${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)})`;
+                        let randomR = Math.floor(Math.random() * 255);
+                        let randomG = Math.floor(Math.random() * 255);
+                        let randomB = Math.floor(Math.random() * 255);
+
+                        dot.style.backgroundColor = `rgb(${randomR}, ${randomG}, ${randomB})`;
+
+                        // Update dot data for smooth transition back
+                        dotData.r = randomR;
+                        dotData.g = randomG;
+                        dotData.b = randomB;
+
                         setTimeout(() => {
-                            dot.style.backgroundColor = '';
+                            // Set target back to original
+                            dotData.targetR = 0;
+                            dotData.targetG = 128;
+                            dotData.targetB = 0;
                         }, 1000);
                     });
                 }
-                
+
+                // Set initial target colors to match starting colors
+                dotData.targetR = dotData.r;
+                dotData.targetG = dotData.g;
+                dotData.targetB = dotData.b;
+
+                // Apply initial color
+                dot.style.backgroundColor = `rgb(${dotData.r}, ${dotData.g}, ${dotData.b})`;
+
+                dots.push(dotData);
                 grid.appendChild(dot);
             }
         }
-        
+
+        // Function to update colors
+        function updateColors() {
+            dots.forEach(dot => {
+                // Smoothly transition current color toward target color
+                dot.r += (dot.targetR - dot.r) * dot.transitionSpeed;
+                dot.g += (dot.targetG - dot.g) * dot.transitionSpeed;
+                dot.b += (dot.targetB - dot.b) * dot.transitionSpeed;
+
+                // Apply the updated color
+                dot.element.style.backgroundColor = `rgb(${Math.round(dot.r)}, ${Math.round(dot.g)}, ${Math.round(dot.b)})`;
+            });
+
+            requestAnimationFrame(updateColors);
+        }
+
+        // Start the color animation
+        updateColors();
+
+        // Periodically set new random target colors
+        setInterval(() => {
+            dots.forEach(dot => {
+                // For non-interactive dots, change target colors
+                const fadeClasses = ['fade-red', 'fade-red-1', 'fade-red-2', 'fade-red-3', 'fade-red-4'];
+                const hasFadeClass = fadeClasses.some(cls => dot.element.classList.contains(cls));
+
+                if (hasFadeClass) {
+                    // For red-themed dots, vary within reddish spectrum
+                    dot.targetR = Math.max(150, Math.min(255, dot.r + (Math.random() * 60 - 30)));
+                    dot.targetG = Math.max(0, Math.min(150, dot.g + (Math.random() * 40 - 20)));
+                    dot.targetB = Math.max(0, Math.min(100, dot.b + (Math.random() * 30 - 15)));
+                } else {
+                    // For green dots, vary within greenish spectrum
+                    dot.targetR = Math.max(0, Math.min(100, dot.r + (Math.random() * 30 - 15)));
+                    dot.targetG = Math.max(100, Math.min(255, dot.g + (Math.random() * 60 - 30)));
+                    dot.targetB = Math.max(0, Math.min(100, dot.b + (Math.random() * 30 - 15)));
+                }
+            });
+        }, 3000);
+
         // Add shooting stars effect
         function createShootingStar() {
             const star = document.createElement('div');
             star.classList.add('shooting-star');
-            
+
             // Random position and trajectory
             const startX = Math.random() * window.innerWidth;
             const startY = Math.random() * window.innerHeight / 3;
             const angle = Math.PI / 4 + (Math.random() * Math.PI / 4);
-            
+
             star.style.left = startX + 'px';
             star.style.top = startY + 'px';
-            
+
             document.body.appendChild(star);
-            
+
             // Animate the shooting star
             const animation = star.animate([
-                { 
-                    left: startX + 'px', 
+                {
+                    left: startX + 'px',
                     top: startY + 'px',
                     opacity: 1,
                     width: '2px',
                     height: '2px',
                     backgroundColor: 'white'
                 },
-                { 
-                    left: (startX + Math.cos(angle) * 300) + 'px', 
+                {
+                    left: (startX + Math.cos(angle) * 300) + 'px',
                     top: (startY + Math.sin(angle) * 300) + 'px',
                     opacity: 0,
                     width: '4px',
@@ -185,30 +290,41 @@
                 duration: 1000 + Math.random() * 2000,
                 easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)'
             });
-            
+
             animation.onfinish = () => {
                 star.remove();
             };
         }
-        
+
         // Create shooting stars periodically
         //setInterval(createShootingStar, 3000);
-        
-        // Animate the dots periodically
+
+        // Animate random dots periodically
         setInterval(() => {
-            const dots = document.querySelectorAll('.dot:not(.fade-red):not(.fade-red-1):not(.fade-red-2):not(.fade-red-3):not(.fade-red-4)');
-            const randomDot = dots[Math.floor(Math.random() * dots.length)];
-            
-            if (randomDot) {
-                randomDot.style.transform = 'scale(1.25)';
-                randomDot.style.backgroundColor = 'rgba(0, 255, 0, 0.8)';
-                
+            const regularDots = dots.filter(dot => {
+                const fadeClasses = ['fade-red', 'fade-red-1', 'fade-red-2', 'fade-red-3', 'fade-red-4'];
+                return !fadeClasses.some(cls => dot.element.classList.contains(cls));
+            });
+
+            if (regularDots.length > 0) {
+                const randomDot = regularDots[Math.floor(Math.random() * regularDots.length)];
+
+                randomDot.element.style.transform = 'scale(1.25)';
+                // Temporarily boost the green
+                randomDot.r = 0;
+                randomDot.g = 255;
+                randomDot.b = 0;
+
                 setTimeout(() => {
-                    randomDot.style.transform = '';
-                    randomDot.style.backgroundColor = '';
+                    randomDot.element.style.transform = '';
+                    // Set target back to a normal green
+                    randomDot.targetR = 0;
+                    randomDot.targetG = 128;
+                    randomDot.targetB = 0;
                 }, 1000);
             }
         }, 800);
     </script>
 </body>
+
 </html>

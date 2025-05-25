@@ -98,9 +98,10 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 1rem;
             margin-bottom: 1.5rem;
+            align-items: stretch;
         }
 
         .stat-card {
@@ -109,6 +110,10 @@
             border-radius: 12px;
             text-align: center;
             border: 1px solid #e2e8f0;
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         .stat-value {
@@ -237,6 +242,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 1rem;
+            align-items: stretch;
         }
 
         .task-grid-item {
@@ -247,6 +253,9 @@
             border: 1px solid #e2e8f0;
             transition: all 0.2s ease;
             cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            min-height: 140px;
         }
 
         .task-grid-item:hover {
@@ -289,7 +298,8 @@
             display: flex;
             justify-content: flex-end;
             gap: 0.25rem;
-            margin-top: 0.75rem;
+            margin-top: auto;
+            padding-top: 0.75rem;
         }
 
         /* Task Header */
@@ -797,7 +807,7 @@
 
         // Utility Functions
         function generateId() {
-            return Date.now() + Math.random();
+            return Date.now().toString();
         }
 
         function calculateProgress(task) {
@@ -838,7 +848,7 @@
         }
 
         function updateTask(taskId, updates) {
-            const taskIndex = tasks.findIndex(task => task.id === taskId);
+            const taskIndex = tasks.findIndex(task => task.id == taskId);
             if (taskIndex !== -1) {
                 tasks[taskIndex] = { ...tasks[taskIndex], ...updates };
                 renderTasks();
@@ -847,13 +857,13 @@
         }
 
         function deleteTask(taskId) {
-            tasks = tasks.filter(task => task.id !== taskId);
+            tasks = tasks.filter(task => task.id != taskId);
             renderTasks();
             updateDashboard();
         }
 
         function createSubtask(taskId, title, weight = 1) {
-            const task = tasks.find(t => t.id === taskId);
+            const task = tasks.find(t => t.id == taskId); // Use == instead of === for type coercion
             if (task) {
                 const newSubtask = {
                     id: generateId(),
@@ -869,9 +879,9 @@
         }
 
         function updateSubtask(taskId, subtaskId, updates) {
-            const task = tasks.find(t => t.id === taskId);
+            const task = tasks.find(t => t.id == taskId);
             if (task) {
-                const subtaskIndex = task.subtasks.findIndex(s => s.id === subtaskId);
+                const subtaskIndex = task.subtasks.findIndex(s => s.id == subtaskId);
                 if (subtaskIndex !== -1) {
                     task.subtasks[subtaskIndex] = { ...task.subtasks[subtaskIndex], ...updates };
                     renderTasks();
@@ -881,18 +891,18 @@
         }
 
         function deleteSubtask(taskId, subtaskId) {
-            const task = tasks.find(t => t.id === taskId);
+            const task = tasks.find(t => t.id == taskId);
             if (task) {
-                task.subtasks = task.subtasks.filter(s => s.id !== subtaskId);
+                task.subtasks = task.subtasks.filter(s => s.id != subtaskId);
                 renderTasks();
                 updateDashboard();
             }
         }
 
         function toggleSubtaskCompletion(taskId, subtaskId) {
-            const task = tasks.find(t => t.id === taskId);
+            const task = tasks.find(t => t.id == taskId);
             if (task) {
-                const subtask = task.subtasks.find(s => s.id === subtaskId);
+                const subtask = task.subtasks.find(s => s.id == subtaskId);
                 if (subtask) {
                     subtask.isCompleted = !subtask.isCompleted;
                     renderTasks();

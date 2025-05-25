@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weighted Todo - Redesigned</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+        /* Dashboard */
+        .dashboard {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .dashboard-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .view-toggle {
+            display: flex;
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 4px;
+            gap: 2px;
+        }
+
+        .view-btn {
+            padding: 8px 12px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #64748b;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .view-btn.active {
+            background: white;
+            color: #3b82f6;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .view-btn:hover:not(.active) {
+            color: #374151;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 500;
+        }
+
+        .stat-card.total { border-left: 4px solid #3b82f6; }
+        .stat-card.completed { border-left: 4px solid #10b981; }
+        .stat-card.progress { border-left: 4px solid #f59e0b; }
+        .stat-card.subtasks { border-left: 4px solid #8b5cf6; }
+
+        /* Add Task */
+        .add-task {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .task-input-group {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .task-input {
+            flex: 1;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .task-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn {
+            padding: 0.875rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            width: 2rem;
+            height: 2rem;
+            justify-content: center;
+        }
+
+        /* Tasks Container */
+        .tasks-container {
+            margin-bottom: 2rem;
+        }
+
+        /* Card View */
+        .task-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+        }
+
+        .task-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Grid View */
+        .tasks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .task-grid-item {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .task-grid-item:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .task-grid-item.completed {
+            background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+            border-color: #10b981;
+        }
+
+        .task-grid-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+        }
+
+        .task-grid-meta {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 0.75rem;
+        }
+
+        .task-grid-progress {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .task-grid-progress-text {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .task-grid-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.25rem;
+            margin-top: 0.75rem;
+        }
+
+        /* Task Header */
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .task-title-section {
+            flex: 1;
+        }
+
+        .task-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #0f172a;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .task-title:hover {
+            color: #3b82f6;
+        }
+
+        .task-title-input {
+            font-size: 1.25rem;
+            font-weight: 600;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid #3b82f6;
+            color: #0f172a;
+            width: 100%;
+            padding: 0.25rem 0;
+        }
+
+        .task-title-input:focus {
+            outline: none;
+        }
+
+        .task-meta {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        /* Progress */
+        .progress-section {
+            margin-bottom: 1rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-label {
+            font-size: 0.875rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .progress-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #f1f5f9;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        /* Subtasks */
+        .subtasks {
+            margin-bottom: 1rem;
+        }
+
+        .subtask {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+        }
+
+        .subtask:hover {
+            background: #f1f5f9;
+        }
+
+        .subtask.completed {
+            opacity: 0.7;
+        }
+
+        .subtask-editing {
+            background: #fef3c7;
+            border-color: #f59e0b;
+        }
+
+        .checkbox {
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .checkbox.checked {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
+        .subtask-content {
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .subtask-title {
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .subtask-title.completed {
+            text-decoration: line-through;
+            color: #9ca3af;
+        }
+
+        .weight-badge {
+            background: #dbeafe;
+            color: #1d4ed8;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .weight-badge:hover {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .subtask-actions {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        /* Subtask Editing */
+        .subtask-edit-form {
+            display: flex;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .subtask-edit-title {
+            flex: 1;
+            padding: 0.375rem 0.5rem;
+            border: 1px solid #d97706;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+
+        .subtask-edit-weight {
+            width: 4rem;
+            padding: 0.375rem 0.5rem;
+            border: 1px solid #d97706;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+
+        /* Add Subtask */
+        .add-subtask-form {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .add-subtask-btn {
+            width: 100%;
+            padding: 0.875rem;
+            border: 2px dashed #cbd5e1;
+            background: transparent;
+            border-radius: 12px;
+            color: #64748b;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .add-subtask-btn:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+            background: #f8fafc;
+        }
+
+        .subtask-form-inputs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .subtask-form-inputs input {
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+
+        .subtask-form-inputs input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        .subtask-form-title {
+            flex: 1;
+        }
+
+        .subtask-form-weight {
+            width: 4rem;
+        }
+
+        .subtask-form-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Task Stats */
+        .task-stats {
+            border-top: 1px solid #e2e8f0;
+            padding-top: 1rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .stat {
+            color: #64748b;
+        }
+
+        .stat-value {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            opacity: 0.8;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-text {
+            color: #64748b;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .how-it-works h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 1rem;
+        }
+
+        .how-it-works ul {
+            list-style: none;
+            color: #64748b;
+        }
+
+        .how-it-works li {
+            padding: 0.25rem 0;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        .how-it-works li::before {
+            content: '•';
+            color: #3b82f6;
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        /* Utilities */
+        .hidden {
+            display: none !important;
+        }
+
+        .icon {
+            width: 1rem;
+            height: 1rem;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .dashboard-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .task-input-group {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .tasks-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .task-stats {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>⚖️ Weighted Todo</h1>
+            <p>Smart task management with weighted progress tracking</p>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="dashboard">
+            <div class="dashboard-header">
+                <h2 class="dashboard-title">📊 Dashboard</h2>
+                <div class="view-toggle">
+                    <button class="view-btn active" data-view="card">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="7" height="7"/>
+                            <rect x="14" y="3" width="7" height="7"/>
+                            <rect x="3" y="14" width="7" height="7"/>
+                            <rect x="14" y="14" width="7" height="7"/>
+                        </svg>
+                        Cards
+                    </button>
+                    <button class="view-btn" data-view="grid">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="18" height="4"/>
+                            <rect x="3" y="9" width="18" height="4"/>
+                            <rect x="3" y="15" width="18" height="4"/>
+                        </svg>
+                        Grid
+                    </button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card total">
+                    <div class="stat-value" id="total-tasks">0</div>
+                    <div class="stat-label">Total Tasks</div>
+                </div>
+                <div class="stat-card completed">
+                    <div class="stat-value" id="completed-tasks">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+                <div class="stat-card progress">
+                    <div class="stat-value" id="progress-tasks">0</div>
+                    <div class="stat-label">In Progress</div>
+                </div>
+                <div class="stat-card subtasks">
+                    <div class="stat-value" id="total-subtasks">0</div>
+                    <div class="stat-label">Subtasks</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Task -->
+        <div class="add-task">
+            <div class="task-input-group">
+                <input type="text" class="task-input" id="new-task-input" placeholder="What needs to be done?" autocomplete="off">
+                <button class="btn btn-primary" id="add-task-btn" disabled>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Add Task
+                </button>
+            </div>
+        </div>
+
+        <!-- Tasks Container -->
+        <div class="tasks-container" id="tasks-container">
+            <!-- Empty State -->
+            <div class="empty-state" id="empty-state">
+                <div class="empty-icon">📝</div>
+                <h3 class="empty-title">Ready to be productive?</h3>
+                <p class="empty-text">Create your first task and start tracking weighted progress.</p>
+            </div>
+        </div>
+
+        <!-- How It Works -->
+        <div class="how-it-works">
+            <h3>💡 How Weighted Progress Works</h3>
+            <ul>
+                <li>Each subtask has a weight (default: 1)</li>
+                <li>Progress = (completed weight ÷ total weight) × 100%</li>
+                <li>Higher weights = more impact on overall progress</li>
+                <li>Perfect for prioritizing important subtasks</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // App State
+        let tasks = [];
+        let currentView = 'card';
+        let editingTask = null;
+        let editingSubtask = null;
+
+        // DOM Elements
+        const newTaskInput = document.getElementById('new-task-input');
+        const addTaskBtn = document.getElementById('add-task-btn');
+        const tasksContainer = document.getElementById('tasks-container');
+        const emptyState = document.getElementById('empty-state');
+
+        // Stats elements
+        const totalTasksEl = document.getElementById('total-tasks');
+        const completedTasksEl = document.getElementById('completed-tasks');
+        const progressTasksEl = document.getElementById('progress-tasks');
+        const totalSubtasksEl = document.getElementById('total-subtasks');
+
+        // Utility Functions
+        function generateId() {
+            return Date.now() + Math.random();
+        }
+
+        function calculateProgress(task) {
+            if (!task.subtasks || task.subtasks.length === 0) return 0;
+            
+            const totalWeight = task.subtasks.reduce((sum, subtask) => sum + subtask.weight, 0);
+            const completedWeight = task.subtasks
+                .filter(subtask => subtask.isCompleted)
+                .reduce((sum, subtask) => sum + subtask.weight, 0);
+            
+            return totalWeight > 0 ? (completedWeight / totalWeight) * 100 : 0;
+        }
+
+        function updateDashboard() {
+            const totalTasks = tasks.length;
+            const completedTasks = tasks.filter(task => calculateProgress(task) === 100).length;
+            const progressTasks = totalTasks - completedTasks;
+            const totalSubtasks = tasks.reduce((sum, task) => sum + task.subtasks.length, 0);
+
+            totalTasksEl.textContent = totalTasks;
+            completedTasksEl.textContent = completedTasks;
+            progressTasksEl.textContent = progressTasks;
+            totalSubtasksEl.textContent = totalSubtasks;
+        }
+
+        // Task Management
+        function createTask(title) {
+            const newTask = {
+                id: generateId(),
+                title,
+                subtasks: [],
+                createdAt: new Date().toISOString()
+            };
+            tasks.push(newTask);
+            renderTasks();
+            updateDashboard();
+            return newTask;
+        }
+
+        function updateTask(taskId, updates) {
+            const taskIndex = tasks.findIndex(task => task.id === taskId);
+            if (taskIndex !== -1) {
+                tasks[taskIndex] = { ...tasks[taskIndex], ...updates };
+                renderTasks();
+                updateDashboard();
+            }
+        }
+
+        function deleteTask(taskId) {
+            tasks = tasks.filter(task => task.id !== taskId);
+            renderTasks();
+            updateDashboard();
+        }
+
+        function createSubtask(taskId, title, weight = 1) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                const newSubtask = {
+                    id: generateId(),
+                    title,
+                    weight: Math.max(1, parseInt(weight) || 1),
+                    isCompleted: false,
+                    createdAt: new Date().toISOString()
+                };
+                task.subtasks.push(newSubtask);
+                renderTasks();
+                updateDashboard();
+            }
+        }
+
+        function updateSubtask(taskId, subtaskId, updates) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                const subtaskIndex = task.subtasks.findIndex(s => s.id === subtaskId);
+                if (subtaskIndex !== -1) {
+                    task.subtasks[subtaskIndex] = { ...task.subtasks[subtaskIndex], ...updates };
+                    renderTasks();
+                    updateDashboard();
+                }
+            }
+        }
+
+        function deleteSubtask(taskId, subtaskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                task.subtasks = task.subtasks.filter(s => s.id !== subtaskId);
+                renderTasks();
+                updateDashboard();
+            }
+        }
+
+        function toggleSubtaskCompletion(taskId, subtaskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                const subtask = task.subtasks.find(s => s.id === subtaskId);
+                if (subtask) {
+                    subtask.isCompleted = !subtask.isCompleted;
+                    renderTasks();
+                    updateDashboard();
+                }
+            }
+        }
+
+        // View Management
+        function setView(view) {
+            currentView = view;
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.view === view);
+            });
+            renderTasks();
+        }
+
+        // Rendering Functions
+        function renderTasks() {
+            if (tasks.length === 0) {
+                emptyState.classList.remove('hidden');
+                tasksContainer.innerHTML = '';
+                tasksContainer.appendChild(emptyState);
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            tasksContainer.innerHTML = '';
+            
+            if (currentView === 'grid') {
+                renderGridView();
+            } else {
+                renderCardView();
+            }
+        }
+
+        function renderGridView() {
+            const gridContainer = document.createElement('div');
+            gridContainer.className = 'tasks-grid';
+            
+            tasks.forEach(task => {
+                const progress = calculateProgress(task);
+                const isCompleted = progress === 100;
+                const completedCount = task.subtasks.filter(s => s.isCompleted).length;
+                
+                const gridItem = document.createElement('div');
+                gridItem.className = `task-grid-item ${isCompleted ? 'completed' : ''}`;
+                gridItem.setAttribute('data-task-id', task.id);
+                
+                gridItem.innerHTML = `
+                    <div class="task-grid-title">${task.title}</div>
+                    <div class="task-grid-meta">${task.subtasks.length} subtasks • ${completedCount} completed</div>
+                    <div class="task-grid-progress">
+                        <span class="task-grid-progress-text">${progress.toFixed(1)}%</span>
+                        <div style="flex: 1; margin-left: 0.5rem;">
+                            <div class="progress-bar" style="height: 4px;">
+                                <div class="progress-fill" style="width: ${progress}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="task-grid-actions">
+                        <button class="btn btn-secondary btn-icon edit-task" data-task-id="${task.id}">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                            </svg>
+                        </button>
+                        <button class="btn btn-secondary btn-icon delete-task" data-task-id="${task.id}">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <polyline points="3,6 5,6 21,6"/>
+                                <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+                
+                // Double click to switch to card view for this task
+                gridItem.addEventListener('dblclick', () => {
+                    setView('card');
+                });
+                
+                gridContainer.appendChild(gridItem);
+            });
+            
+            tasksContainer.appendChild(gridContainer);
+            
+            // Call addEventListeners after DOM elements are added
+            setTimeout(() => addEventListeners(), 0);
+        }
+
+        function renderCardView() {
+            tasks.forEach(task => {
+                const progress = calculateProgress(task);
+                const totalWeight = task.subtasks.reduce((sum, s) => sum + s.weight, 0);
+                const completedCount = task.subtasks.filter(s => s.isCompleted).length;
+                const completedWeight = task.subtasks.filter(s => s.isCompleted).reduce((sum, s) => sum + s.weight, 0);
+                
+                const taskCard = document.createElement('div');
+                taskCard.className = 'task-card';
+                taskCard.setAttribute('data-task-id', task.id);
+                
+                let progressSection = '';
+                if (task.subtasks.length > 0) {
+                    progressSection = `
+                        <div class="progress-section">
+                            <div class="progress-header">
+                                <span class="progress-label">Progress</span>
+                                <span class="progress-value">${progress.toFixed(1)}%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${progress}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                let subtasksHTML = '';
+                task.subtasks.forEach(subtask => {
+                    subtasksHTML += `
+                        <div class="subtask ${subtask.isCompleted ? 'completed' : ''}" data-subtask-id="${subtask.id}">
+                            <div class="checkbox ${subtask.isCompleted ? 'checked' : ''}" data-task-id="${task.id}" data-subtask-id="${subtask.id}">
+                                ${subtask.isCompleted ? '✓' : ''}
+                            </div>
+                            <div class="subtask-content" data-task-id="${task.id}" data-subtask-id="${subtask.id}">
+                                <div class="subtask-title ${subtask.isCompleted ? 'completed' : ''}">${subtask.title}</div>
+                            </div>
+                            <div class="weight-badge" data-task-id="${task.id}" data-subtask-id="${subtask.id}">${subtask.weight}</div>
+                            <div class="subtask-actions">
+                                <button class="btn btn-secondary btn-icon edit-subtask" data-task-id="${task.id}" data-subtask-id="${subtask.id}">
+                                    <svg class="icon" viewBox="0 0 24 24">
+                                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                                    </svg>
+                                </button>
+                                <button class="btn btn-secondary btn-icon delete-subtask" data-task-id="${task.id}" data-subtask-id="${subtask.id}">
+                                    <svg class="icon" viewBox="0 0 24 24">
+                                        <polyline points="3,6 5,6 21,6"/>
+                                        <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                let taskStats = '';
+                if (task.subtasks.length > 0) {
+                    taskStats = `
+                        <div class="task-stats">
+                            <div class="stat">
+                                <div class="stat-value">${totalWeight}</div>
+                                <div class="stat-label">Total Weight</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">${completedWeight}</div>
+                                <div class="stat-label">Completed Weight</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">${progress.toFixed(1)}%</div>
+                                <div class="stat-label">Progress</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                taskCard.innerHTML = `
+                    <div class="task-header">
+                        <div class="task-title-section">
+                            <div class="task-title" data-task-id="${task.id}">${task.title}</div>
+                            ${task.subtasks.length > 0 ? `<div class="task-meta">${completedCount}/${task.subtasks.length} subtasks completed • Total weight: ${totalWeight}</div>` : ''}
+                        </div>
+                        <div class="task-actions">
+                            <button class="btn btn-secondary btn-icon edit-task" data-task-id="${task.id}">
+                                <svg class="icon" viewBox="0 0 24 24">
+                                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                                </svg>
+                            </button>
+                            <button class="btn btn-secondary btn-icon delete-task" data-task-id="${task.id}">
+                                <svg class="icon" viewBox="0 0 24 24">
+                                    <polyline points="3,6 5,6 21,6"/>
+                                    <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    ${progressSection}
+                    <div class="subtasks">
+                        ${subtasksHTML}
+                    </div>
+                    <button class="add-subtask-btn" data-task-id="${task.id}" type="button">
+                        <svg class="icon" viewBox="0 0 24 24" style="display: inline-block; margin-right: 0.5rem;">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Add Subtask
+                    </button>
+                    ${taskStats}
+                `;
+                
+                tasksContainer.appendChild(taskCard);
+            });
+            
+            // Call addEventListeners after DOM elements are added
+            setTimeout(() => addEventListeners(), 0);
+        }
+
+        function showSubtaskForm(taskId) {
+            console.log('showSubtaskForm called with taskId:', taskId);
+            
+            const taskCard = document.querySelector(`[data-task-id="${taskId}"]`);
+            if (!taskCard) {
+                console.error('Task card not found for ID:', taskId);
+                return;
+            }
+            
+            const addBtn = taskCard.querySelector('.add-subtask-btn');
+            if (!addBtn) {
+                console.error('Add subtask button not found in task card');
+                return;
+            }
+            
+            console.log('Creating subtask form...');
+            
+            // Create form container
+            const formDiv = document.createElement('div');
+            formDiv.className = 'add-subtask-form';
+            
+            // Create inputs container
+            const inputsDiv = document.createElement('div');
+            inputsDiv.className = 'subtask-form-inputs';
+            
+            const titleInput = document.createElement('input');
+            titleInput.type = 'text';
+            titleInput.className = 'subtask-form-title';
+            titleInput.placeholder = 'Subtask title';
+            titleInput.autocomplete = 'off';
+            
+            const weightInput = document.createElement('input');
+            weightInput.type = 'number';
+            weightInput.className = 'subtask-form-weight';
+            weightInput.placeholder = 'Weight';
+            weightInput.value = '1';
+            weightInput.min = '1';
+            
+            inputsDiv.appendChild(titleInput);
+            inputsDiv.appendChild(weightInput);
+            
+            // Create actions container
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'subtask-form-actions';
+            
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'btn btn-primary btn-sm save-subtask-btn';
+            saveBtn.innerHTML = `
+                <svg class="icon" viewBox="0 0 24 24">
+                    <polyline points="20,6 9,17 4,12"/>
+                </svg>
+                Add
+            `;
+            
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'btn btn-secondary btn-sm cancel-subtask-btn';
+            cancelBtn.innerHTML = `
+                <svg class="icon" viewBox="0 0 24 24">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+                Cancel
+            `;
+            
+            actionsDiv.appendChild(saveBtn);
+            actionsDiv.appendChild(cancelBtn);
+            
+            // Assemble form
+            formDiv.appendChild(inputsDiv);
+            formDiv.appendChild(actionsDiv);
+            
+            // Replace button with form
+            addBtn.replaceWith(formDiv);
+            
+            // Focus on title input
+            titleInput.focus();
+            
+            // Define action functions
+            const saveSubtask = () => {
+                const title = titleInput.value.trim();
+                const weight = parseInt(weightInput.value) || 1;
+                
+                console.log('Saving subtask:', title, weight);
+                
+                if (title) {
+                    createSubtask(taskId, title, weight);
+                } else {
+                    alert('Please enter a subtask title');
+                    titleInput.focus();
+                }
+            };
+            
+            const cancelForm = () => {
+                console.log('Canceling form...');
+                renderTasks();
+            };
+            
+            // Add event listeners
+            saveBtn.addEventListener('click', saveSubtask);
+            cancelBtn.addEventListener('click', cancelForm);
+            
+            titleInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    saveSubtask();
+                }
+            });
+            
+            weightInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    saveSubtask();
+                }
+            });
+            
+            console.log('Subtask form created and event listeners attached');
+        }
+
+        function startEditingSubtask(taskId, subtaskId) {
+            const task = tasks.find(t => t.id === taskId);
+            const subtask = task.subtasks.find(s => s.id === subtaskId);
+            
+            const subtaskEl = document.querySelector(`[data-subtask-id="${subtaskId}"]`);
+            subtaskEl.classList.add('subtask-editing');
+            
+            const contentEl = subtaskEl.querySelector('.subtask-content');
+            const weightEl = subtaskEl.querySelector('.weight-badge');
+            const actionsEl = subtaskEl.querySelector('.subtask-actions');
+            
+            // Create edit form programmatically
+            const editForm = document.createElement('div');
+            editForm.className = 'subtask-edit-form';
+            
+            const titleInput = document.createElement('input');
+            titleInput.type = 'text';
+            titleInput.className = 'subtask-edit-title';
+            titleInput.value = subtask.title;
+            
+            const weightInput = document.createElement('input');
+            weightInput.type = 'number';
+            weightInput.className = 'subtask-edit-weight';
+            weightInput.value = subtask.weight;
+            weightInput.min = '1';
+            
+            editForm.appendChild(titleInput);
+            editForm.appendChild(weightInput);
+            
+            // Create action buttons programmatically
+            const editActions = document.createElement('div');
+            editActions.className = 'subtask-actions';
+            
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'btn btn-primary btn-icon save-subtask-edit';
+            saveBtn.innerHTML = `
+                <svg class="icon" viewBox="0 0 24 24">
+                    <polyline points="20,6 9,17 4,12"/>
+                </svg>
+            `;
+            
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'btn btn-secondary btn-icon cancel-subtask-edit';
+            cancelBtn.innerHTML = `
+                <svg class="icon" viewBox="0 0 24 24">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            `;
+            
+            editActions.appendChild(saveBtn);
+            editActions.appendChild(cancelBtn);
+            
+            // Replace DOM elements
+            contentEl.replaceWith(editForm);
+            weightEl.style.display = 'none';
+            actionsEl.replaceWith(editActions);
+            
+            // Now we can safely add event listeners since elements are created
+            titleInput.focus();
+            titleInput.select();
+            
+            const saveEdit = () => {
+                const newTitle = titleInput.value.trim();
+                const newWeight = Math.max(1, parseInt(weightInput.value) || 1);
+                
+                if (newTitle) {
+                    updateSubtask(taskId, subtaskId, {
+                        title: newTitle,
+                        weight: newWeight
+                    });
+                } else {
+                    renderTasks(); // Cancel if empty
+                }
+            };
+            
+            const cancelEdit = () => {
+                renderTasks();
+            };
+            
+            saveBtn.addEventListener('click', saveEdit);
+            cancelBtn.addEventListener('click', cancelEdit);
+            
+            titleInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    saveEdit();
+                }
+            });
+            
+            weightInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    saveEdit();
+                }
+            });
+        }
+
+        function startEditingTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            const taskTitleEl = document.querySelector(`[data-task-id="${taskId}"] .task-title`);
+            
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'task-title-input';
+            input.value = task.title;
+            
+            taskTitleEl.replaceWith(input);
+            input.focus();
+            input.select();
+            
+            const saveEdit = () => {
+                const newTitle = input.value.trim();
+                if (newTitle && newTitle !== task.title) {
+                    updateTask(taskId, { title: newTitle });
+                } else {
+                    renderTasks();
+                }
+            };
+            
+            input.addEventListener('blur', saveEdit);
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    saveEdit();
+                }
+            });
+        }
+
+        // Event Listeners
+        function addEventListeners() {
+            // Clear any existing listeners by removing the listener tracking attributes
+            document.querySelectorAll('[data-listener-added]').forEach(el => {
+                el.removeAttribute('data-listener-added');
+            });
+            
+            // Add subtask buttons - Most important to fix first
+            document.querySelectorAll('.add-subtask-btn').forEach(btn => {
+                // Remove any existing listeners by cloning the element
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+                
+                newBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const taskId = this.dataset.taskId;
+                    console.log('Add subtask clicked for task:', taskId);
+                    showSubtaskForm(taskId);
+                });
+            });
+            
+            // Task title editing
+            document.querySelectorAll('.task-title').forEach(title => {
+                if (!title.hasAttribute('data-listener-added')) {
+                    title.setAttribute('data-listener-added', 'true');
+                    title.addEventListener('click', (e) => {
+                        const taskId = e.currentTarget.dataset.taskId;
+                        startEditingTask(taskId);
+                    });
+                }
+            });
+            
+            // Task editing buttons
+            document.querySelectorAll('.edit-task').forEach(btn => {
+                if (!btn.hasAttribute('data-listener-added')) {
+                    btn.setAttribute('data-listener-added', 'true');
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const taskId = e.currentTarget.dataset.taskId;
+                        startEditingTask(taskId);
+                    });
+                }
+            });
+            
+            // Task deletion
+            document.querySelectorAll('.delete-task').forEach(btn => {
+                if (!btn.hasAttribute('data-listener-added')) {
+                    btn.setAttribute('data-listener-added', 'true');
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const taskId = e.currentTarget.dataset.taskId;
+                        if (confirm('Delete this task and all its subtasks?')) {
+                            deleteTask(taskId);
+                        }
+                    });
+                }
+            });
+            
+            // Subtask completion toggle
+            document.querySelectorAll('.checkbox').forEach(checkbox => {
+                if (!checkbox.hasAttribute('data-listener-added')) {
+                    checkbox.setAttribute('data-listener-added', 'true');
+                    checkbox.addEventListener('click', (e) => {
+                        const taskId = e.currentTarget.dataset.taskId;
+                        const subtaskId = e.currentTarget.dataset.subtaskId;
+                        toggleSubtaskCompletion(taskId, subtaskId);
+                    });
+                }
+            });
+            
+            // Subtask content editing
+            document.querySelectorAll('.subtask-content').forEach(content => {
+                if (!content.hasAttribute('data-listener-added')) {
+                    content.setAttribute('data-listener-added', 'true');
+                    content.addEventListener('click', (e) => {
+                        const taskId = e.currentTarget.dataset.taskId;
+                        const subtaskId = e.currentTarget.dataset.subtaskId;
+                        startEditingSubtask(taskId, subtaskId);
+                    });
+                }
+            });
+            
+            // Weight badge editing
+            document.querySelectorAll('.weight-badge').forEach(badge => {
+                if (!badge.hasAttribute('data-listener-added')) {
+                    badge.setAttribute('data-listener-added', 'true');
+                    badge.addEventListener('click', (e) => {
+                        const taskId = e.currentTarget.dataset.taskId;
+                        const subtaskId = e.currentTarget.dataset.subtaskId;
+                        startEditingSubtask(taskId, subtaskId);
+                    });
+                }
+            });
+            
+            // Subtask editing buttons
+            document.querySelectorAll('.edit-subtask').forEach(btn => {
+                if (!btn.hasAttribute('data-listener-added')) {
+                    btn.setAttribute('data-listener-added', 'true');
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const taskId = e.currentTarget.dataset.taskId;
+                        const subtaskId = e.currentTarget.dataset.subtaskId;
+                        startEditingSubtask(taskId, subtaskId);
+                    });
+                }
+            });
+            
+            // Subtask deletion
+            document.querySelectorAll('.delete-subtask').forEach(btn => {
+                if (!btn.hasAttribute('data-listener-added')) {
+                    btn.setAttribute('data-listener-added', 'true');
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const taskId = e.currentTarget.dataset.taskId;
+                        const subtaskId = e.currentTarget.dataset.subtaskId;
+                        deleteSubtask(taskId, subtaskId);
+                    });
+                }
+            });
+        }
+
+        // View Toggle
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const view = e.currentTarget.dataset.view;
+                setView(view);
+            });
+        });
+
+        // Add Task
+        addTaskBtn.addEventListener('click', () => {
+            const title = newTaskInput.value.trim();
+            if (title) {
+                createTask(title);
+                newTaskInput.value = '';
+                addTaskBtn.disabled = true;
+            }
+        });
+
+        newTaskInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addTaskBtn.click();
+            }
+        });
+
+        newTaskInput.addEventListener('input', () => {
+            addTaskBtn.disabled = !newTaskInput.value.trim();
+        });
+
+        // Initialize
+        renderTasks();
+        updateDashboard();
+    </script>
+</body>
+</html>

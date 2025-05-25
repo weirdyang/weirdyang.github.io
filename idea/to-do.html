@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weighted Todo - Redesigned</title>
+    <title>todo-app</title>
     <style>
         * {
             margin: 0;
@@ -12,10 +12,10 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            color: #1e293b;
+            color: #1a202c;
             line-height: 1.6;
         }
 
@@ -28,72 +28,94 @@
         /* Header */
         .header {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 3rem;
         }
 
         .header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #0f172a;
+            font-size: 3rem;
+            font-weight: 800;
+            color: white;
             margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .header p {
-            color: #64748b;
-            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.2rem;
+            font-weight: 400;
         }
 
         /* Dashboard */
         .dashboard {
-            background: white;
-            border-radius: 16px;
-            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 2rem;
             margin-bottom: 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e2e8f0;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .dashboard-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
         }
 
         .dashboard-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #0f172a;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1a202c;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .dashboard-title::before {
+            content: '';
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: block;
         }
 
         .view-toggle {
             display: flex;
-            background: #f1f5f9;
-            border-radius: 8px;
-            padding: 4px;
-            gap: 2px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            padding: 6px;
+            gap: 4px;
+            backdrop-filter: blur(10px);
         }
 
         .view-btn {
-            padding: 8px 12px;
+            padding: 10px 16px;
             border: none;
             background: transparent;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            color: #64748b;
+            transition: all 0.3s ease;
+            color: #667eea;
             font-size: 0.875rem;
-            font-weight: 500;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .view-btn.active {
             background: white;
-            color: #3b82f6;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            color: #667eea;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
         }
 
         .view-btn:hover:not(.active) {
-            color: #374151;
+            background: rgba(255, 255, 255, 0.5);
+            transform: translateY(-1px);
         }
 
         .stats-grid {
@@ -105,36 +127,61 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            padding: 1rem;
-            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            border-radius: 16px;
             text-align: center;
-            border: 1px solid #e2e8f0;
-            height: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            height: 120px;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-color);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
         .stat-value {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 0.25rem;
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+            line-height: 1;
         }
 
         .stat-label {
-            font-size: 0.75rem;
-            color: #64748b;
+            font-size: 0.8rem;
+            color: #4a5568;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            font-weight: 500;
+            letter-spacing: 0.1em;
+            font-weight: 600;
         }
 
-        .stat-card.total { border-left: 4px solid #3b82f6; }
-        .stat-card.completed { border-left: 4px solid #10b981; }
-        .stat-card.progress { border-left: 4px solid #f59e0b; }
-        .stat-card.subtasks { border-left: 4px solid #8b5cf6; }
+        .stat-card.total { --accent-color: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .stat-card.completed { --accent-color: linear-gradient(135deg, #48bb78 0%, #38a169 100%); }
+        .stat-card.progress { --accent-color: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%); }
+        .stat-card.subtasks { --accent-color: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%); }
+
+        .stat-card.total::before { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .stat-card.completed::before { background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); }
+        .stat-card.progress::before { background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%); }
+        .stat-card.subtasks::before { background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%); }
 
         /* Add Task */
         .add-task {
@@ -378,17 +425,35 @@
 
         .progress-bar {
             width: 100%;
-            height: 8px;
-            background: #f1f5f9;
-            border-radius: 4px;
+            height: 10px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 8px;
             overflow: hidden;
+            backdrop-filter: blur(10px);
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #3b82f6, #60a5fa);
-            border-radius: 4px;
-            transition: width 0.5s ease;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 8px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
         }
 
         /* Subtasks */
@@ -590,63 +655,74 @@
         .empty-state {
             text-align: center;
             padding: 4rem 2rem;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e2e8f0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .empty-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
+            width: 4rem;
+            height: 4rem;
+            color: #9ca3af;
+            margin: 0 auto 1.5rem;
         }
 
         .empty-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 0.75rem;
         }
 
         .empty-text {
-            color: #64748b;
+            color: #4a5568;
+            font-size: 1.1rem;
         }
 
         /* How It Works */
         .how-it-works {
-            background: white;
-            border-radius: 16px;
-            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 2rem;
             margin-top: 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e2e8f0;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .how-it-works h3 {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 1rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
         }
 
         .how-it-works ul {
             list-style: none;
-            color: #64748b;
+            color: #4a5568;
+            line-height: 1.7;
         }
 
         .how-it-works li {
-            padding: 0.25rem 0;
+            padding: 0.5rem 0;
             position: relative;
-            padding-left: 1.5rem;
+            padding-left: 2rem;
+            font-size: 1rem;
         }
 
         .how-it-works li::before {
-            content: '•';
-            color: #3b82f6;
+            content: '';
             position: absolute;
             left: 0;
-            font-weight: bold;
+            top: 1rem;
+            width: 8px;
+            height: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
         }
 
         /* Utilities */
@@ -701,14 +777,14 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>⚖️ Weighted Todo</h1>
-            <p>Smart task management with weighted progress tracking</p>
+            <h1>todo-app</h1>
+            <p>Intelligent task management with weighted progress tracking</p>
         </div>
 
         <!-- Dashboard -->
         <div class="dashboard">
             <div class="dashboard-header">
-                <h2 class="dashboard-title">📊 Dashboard</h2>
+                <h2 class="dashboard-title">Dashboard</h2>
                 <div class="view-toggle">
                     <button class="view-btn active" data-view="card">
                         <svg class="icon" viewBox="0 0 24 24">
@@ -768,7 +844,10 @@
         <div class="tasks-container" id="tasks-container">
             <!-- Empty State -->
             <div class="empty-state" id="empty-state">
-                <div class="empty-icon">📝</div>
+                <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M9 12l2 2 4-4"/>
+                    <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/>
+                </svg>
                 <h3 class="empty-title">Ready to be productive?</h3>
                 <p class="empty-text">Create your first task and start tracking weighted progress.</p>
             </div>
@@ -776,7 +855,14 @@
 
         <!-- How It Works -->
         <div class="how-it-works">
-            <h3>💡 How Weighted Progress Works</h3>
+            <h3>
+                <svg style="width: 1.25rem; height: 1.25rem; display: inline-block; margin-right: 0.5rem; color: #667eea;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                How Weighted Progress Works
+            </h3>
             <ul>
                 <li>Each subtask has a weight (default: 1)</li>
                 <li>Progress = (completed weight ÷ total weight) × 100%</li>

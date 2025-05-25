@@ -320,6 +320,12 @@
             font-weight: 600;
             color: #0f172a;
             margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .task-grid-title:hover {
+            color: #667eea;
         }
 
         .task-grid-meta {
@@ -1064,9 +1070,12 @@
                     </div>
                 `;
                 
-                // Double click to switch to card view for this task
-                gridItem.addEventListener('dblclick', () => {
-                    setView('card');
+                // Double click on non-button areas to switch to card view
+                gridItem.addEventListener('dblclick', (e) => {
+                    // Only switch view if not clicking on buttons
+                    if (!e.target.closest('button')) {
+                        setView('card');
+                    }
                 });
                 
                 gridContainer.appendChild(gridItem);
@@ -1208,6 +1217,12 @@
                 return;
             }
             
+            // Check if button is already replaced (form already showing)
+            if (taskCard.querySelector('.add-subtask-form')) {
+                console.log('Subtask form already showing');
+                return;
+            }
+            
             console.log('Creating subtask form...');
             
             // Create form container
@@ -1264,8 +1279,18 @@
             formDiv.appendChild(inputsDiv);
             formDiv.appendChild(actionsDiv);
             
-            // Replace button with form
-            addBtn.replaceWith(formDiv);
+            // Replace button with form - with safety check
+            try {
+                if (addBtn && addBtn.parentNode) {
+                    addBtn.replaceWith(formDiv);
+                } else {
+                    console.error('Cannot replace add button - element or parent is null');
+                    return;
+                }
+            } catch (error) {
+                console.error('Error replacing add button:', error);
+                return;
+            }
             
             // Focus on title input
             titleInput.focus();
@@ -1311,14 +1336,33 @@
 
         function startEditingSubtask(taskId, subtaskId) {
             const task = tasks.find(t => t.id === taskId);
+            if (!task) {
+                console.error('Task not found for subtask editing:', taskId);
+                return;
+            }
+            
             const subtask = task.subtasks.find(s => s.id === subtaskId);
+            if (!subtask) {
+                console.error('Subtask not found for editing:', subtaskId);
+                return;
+            }
             
             const subtaskEl = document.querySelector(`[data-subtask-id="${subtaskId}"]`);
+            if (!subtaskEl) {
+                console.error('Subtask element not found');
+                return;
+            }
+            
             subtaskEl.classList.add('subtask-editing');
             
             const contentEl = subtaskEl.querySelector('.subtask-content');
             const weightEl = subtaskEl.querySelector('.weight-badge');
             const actionsEl = subtaskEl.querySelector('.subtask-actions');
+            
+            if (!contentEl || !weightEl || !actionsEl) {
+                console.error('Required subtask elements not found');
+                return;
+            }
             
             // Create edit form programmatically
             const editForm = document.createElement('div');
@@ -1362,10 +1406,27 @@
             editActions.appendChild(saveBtn);
             editActions.appendChild(cancelBtn);
             
-            // Replace DOM elements
-            contentEl.replaceWith(editForm);
-            weightEl.style.display = 'none';
-            actionsEl.replaceWith(editActions);
+            // Replace DOM elements with safety checks
+            try {
+                if (contentEl && contentEl.parentNode) {
+                    contentEl.replaceWith(editForm);
+                } else {
+                    console.error('Cannot replace content element');
+                    return;
+                }
+                
+                weightEl.style.display = 'none';
+                
+                if (actionsEl && actionsEl.parentNode) {
+                    actionsEl.replaceWith(editActions);
+                } else {
+                    console.error('Cannot replace actions element');
+                    return;
+                }
+            } catch (error) {
+                console.error('Error replacing subtask elements:', error);
+                return;
+            }
             
             // Now we can safely add event listeners since elements are created
             titleInput.focus();
@@ -1407,16 +1468,48 @@
 
         function startEditingTask(taskId) {
             const task = tasks.find(t => t.id === taskId);
-            const taskTitleEl = document.querySelector(`[data-task-id="${taskId}"] .task-title`);
+            if (!task) {
+                console.error('Task not found for editing:', taskId);
+                return;
+            }
+            
+            // Check for both card view and grid view title elements
+            let taskTitleEl = document.querySelector(`[data-task-id="${taskId}"] .task-title`);
+            if (!taskTitleEl) {
+                taskTitleEl = document.querySelector(`[data-task-id="${taskId}"] .task-grid-title`);
+            }
+            
+            if (!taskTitleEl) {
+                console.error('Task title element not found for taskId:', taskId);
+                console.log('Current view:', currentView);
+                // If we can't find the title element, just switch to card view and re-render
+                if (currentView === 'grid') {
+                    setView('card');
+                    setTimeout(() => startEditingTask(taskId), 100);
+                }
+                return;
+            }
             
             const input = document.createElement('input');
             input.type = 'text';
-            input.className = 'task-title-input';
+            input.className = taskTitleEl.className.includes('task-grid-title') ? 'task-grid-title' : 'task-title-input';
+            input.style.background = 'white';
+            input.style.border = '2px solid #667eea';
+            input.style.borderRadius = '8px';
+            input.style.padding = '0.5rem';
+            input.style.fontSize = 'inherit';
+            input.style.fontWeight = 'inherit';
+            input.style.width = '100%';
             input.value = task.title;
             
-            taskTitleEl.replaceWith(input);
-            input.focus();
-            input.select();
+            try {
+                taskTitleEl.replaceWith(input);
+                input.focus();
+                input.select();
+            } catch (error) {
+                console.error('Error replacing task title:', error);
+                return;
+            }
             
             const saveEdit = () => {
                 const newTitle = input.value.trim();
@@ -1445,25 +1538,35 @@
             // Add subtask buttons - Most important to fix first
             document.querySelectorAll('.add-subtask-btn').forEach(btn => {
                 // Remove any existing listeners by cloning the element
-                const newBtn = btn.cloneNode(true);
-                btn.parentNode.replaceChild(newBtn, btn);
-                
-                newBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const taskId = this.dataset.taskId;
-                    console.log('Add subtask clicked for task:', taskId);
-                    showSubtaskForm(taskId);
-                });
+                try {
+                    if (btn && btn.parentNode) {
+                        const newBtn = btn.cloneNode(true);
+                        btn.parentNode.replaceChild(newBtn, btn);
+                        
+                        newBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const taskId = this.dataset.taskId;
+                            console.log('Add subtask clicked for task:', taskId);
+                            showSubtaskForm(taskId);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error setting up add subtask button:', error);
+                }
             });
             
-            // Task title editing
-            document.querySelectorAll('.task-title').forEach(title => {
+            // Task title editing (both card and grid view)
+            document.querySelectorAll('.task-title, .task-grid-title').forEach(title => {
                 if (!title.hasAttribute('data-listener-added')) {
                     title.setAttribute('data-listener-added', 'true');
                     title.addEventListener('click', (e) => {
-                        const taskId = e.currentTarget.dataset.taskId;
-                        startEditingTask(taskId);
+                        // Get taskId from the closest parent element that has it
+                        const taskEl = e.currentTarget.closest('[data-task-id]');
+                        if (taskEl) {
+                            const taskId = taskEl.dataset.taskId;
+                            startEditingTask(taskId);
+                        }
                     });
                 }
             });
